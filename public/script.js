@@ -46,17 +46,14 @@ window.addEventListener('load', () => {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.setSize(W, H);
 
-  // ── Group that holds everything ──
   const brain = new THREE.Group();
   scene.add(brain);
 
-  // ── Ambient light ──
   scene.add(new THREE.AmbientLight(0x7b2fff, 0.5));
   const pt = new THREE.PointLight(0x00f5d4, 1.5, 40);
   pt.position.set(5, 5, 5);
   scene.add(pt);
 
-  // ── Core sphere ──
   const coreGeo = new THREE.SphereGeometry(1.6, 48, 48);
   const coreMat = new THREE.MeshPhongMaterial({
     color: 0x0d0520,
@@ -69,12 +66,10 @@ window.addEventListener('load', () => {
   const coreMesh = new THREE.Mesh(coreGeo, coreMat);
   brain.add(coreMesh);
 
-  // Inner wireframe
   const wGeo = new THREE.SphereGeometry(1.62, 18, 18);
   const wMat = new THREE.MeshBasicMaterial({ color: 0x7b2fff, wireframe: true, transparent: true, opacity: 0.07 });
   brain.add(new THREE.Mesh(wGeo, wMat));
 
-  // ── Generate nodes on sphere surface ──
   const NODE_COUNT = 160;
   const nodePositions = [];
   const goldenRatio = (1 + Math.sqrt(5)) / 2;
@@ -90,7 +85,6 @@ window.addEventListener('load', () => {
     ));
   }
 
-  // ── Node meshes ──
   const nodeGeo = new THREE.SphereGeometry(0.045, 8, 8);
   const nodeMats = nodePositions.map((_, i) => new THREE.MeshBasicMaterial({
     color: i % 3 === 0 ? 0x7b2fff : i % 3 === 1 ? 0x00f5d4 : 0xff2d87,
@@ -106,7 +100,6 @@ window.addEventListener('load', () => {
     return m;
   });
 
-  // ── Edges (lines between nearby nodes) ──
   const edgeGeometry = new THREE.BufferGeometry();
   const edgePts = [];
   const edges = [];
@@ -128,7 +121,6 @@ window.addEventListener('load', () => {
   const edgeLines = new THREE.LineSegments(edgeGeometry, edgeMat);
   brain.add(edgeLines);
 
-  // ── Data packets travelling along edges ──
   const PACKET_COUNT = 28;
   const packetGeo = new THREE.SphereGeometry(0.055, 6, 6);
   const packetColors = [0x00f5d4, 0x7b2fff, 0xff2d87, 0xffffff];
@@ -153,7 +145,6 @@ window.addEventListener('load', () => {
     });
   }
 
-  // ── Background particles (deep space stars) ──
   const starCount = 400;
   const starPos = new Float32Array(starCount * 3);
   for (let i = 0; i < starCount; i++) {
@@ -166,7 +157,6 @@ window.addEventListener('load', () => {
   const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.08, transparent: true, opacity: 0.5 });
   scene.add(new THREE.Points(starGeo, starMat));
 
-  // ── Outer glow ring ──
   const ringGeo = new THREE.TorusGeometry(3.8, 0.015, 8, 100);
   const ringMat = new THREE.MeshBasicMaterial({ color: 0x00f5d4, transparent: true, opacity: 0.3 });
   const ring1 = new THREE.Mesh(ringGeo, ringMat);
@@ -179,14 +169,12 @@ window.addEventListener('load', () => {
   ring2.rotation.y = Math.PI * 0.25;
   brain.add(ring2);
 
-  // ── Mouse tracking ──
   let mouseX = 0, mouseY = 0, targetX = 0, targetY = 0;
   document.addEventListener('mousemove', e => {
     mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
     mouseY = -(e.clientY / window.innerHeight - 0.5) * 2;
   });
 
-  // ── Click pulse effect ──
   canvas.addEventListener('click', () => {
     let p = 0;
     const pulse = setInterval(() => {
@@ -201,35 +189,29 @@ window.addEventListener('load', () => {
     }, 16);
   });
 
-  // ── Animation loop ──
   let elapsed = 0;
   function animate() {
     requestAnimationFrame(animate);
     elapsed += 0.01;
 
-    // Smooth camera follow mouse
     targetX += (mouseX * 0.5 - targetX) * 0.04;
     targetY += (mouseY * 0.3 - targetY) * 0.04;
     camera.position.x = targetX;
     camera.position.y = targetY;
     camera.lookAt(0, 0, 0);
 
-    // Brain rotation
     brain.rotation.y = elapsed * 0.15;
     brain.rotation.x = Math.sin(elapsed * 0.08) * 0.06;
 
-    // Ring rotation
     ring1.rotation.z = elapsed * 0.2;
     ring2.rotation.z = -elapsed * 0.15;
 
-    // Pulse nodes
     nodeMeshes.forEach((m, i) => {
       const s = m.userData.baseScale + Math.sin(elapsed * 2.5 + m.userData.pulseOffset) * 0.3;
       m.scale.setScalar(s);
       nodeMats[i].opacity = 0.4 + Math.sin(elapsed * 1.5 + m.userData.pulseOffset) * 0.3;
     });
 
-    // Animate data packets
     packets.forEach(pkt => {
       pkt.delay -= 0.01;
       if (pkt.delay > 0) return;
@@ -245,7 +227,6 @@ window.addEventListener('load', () => {
       pkt.mesh.position.copy(pos);
     });
 
-    // Pulsing edge opacity
     edgeMat.opacity = 0.10 + Math.sin(elapsed * 0.8) * 0.04;
     pt.intensity = 1.2 + Math.sin(elapsed * 1.2) * 0.4;
 
@@ -253,7 +234,6 @@ window.addEventListener('load', () => {
   }
   animate();
 
-  // ── Resize ──
   window.addEventListener('resize', () => {
     W = canvas.offsetWidth;
     H = canvas.offsetHeight;
@@ -387,7 +367,6 @@ fills.forEach(el => fillObs.observe(el));
 document.querySelectorAll('.flip-wrap').forEach(wrap => {
   const card = wrap.querySelector('.flip-card');
 
-  // Tilt on hover (only when NOT flipped)
   wrap.addEventListener('mousemove', e => {
     if (card.classList.contains('flipped')) return;
     const rect = wrap.getBoundingClientRect();
@@ -403,7 +382,6 @@ document.querySelectorAll('.flip-wrap').forEach(wrap => {
     setTimeout(() => card.style.transition = '', 600);
   });
 
-  // Click to flip
   wrap.addEventListener('click', () => {
     card.style.transition = 'transform .85s cubic-bezier(0.4,0,0.2,1)';
     card.classList.toggle('flipped');
@@ -422,7 +400,6 @@ document.querySelectorAll('.f-btn').forEach(btn => {
     btn.classList.add('active');
     const f = btn.dataset.f;
     document.querySelectorAll('.flip-wrap').forEach(card => {
-      // Reset flip state when filtering
       const fc = card.querySelector('.flip-card');
       fc.classList.remove('flipped');
       fc.style.transform = '';
@@ -433,7 +410,7 @@ document.querySelectorAll('.f-btn').forEach(btn => {
   });
 });
 
-/* ──────────── CONTACT FORM ──────────── */
+/* ──────────── CONTACT FORM (EmailJS) ──────────── */
 const submitBtn = document.getElementById('submitBtn');
 
 if (submitBtn) {
@@ -457,24 +434,22 @@ if (submitBtn) {
     if (!ok) return;
 
     // Loading state
-    label.textContent      = 'Sending...';
-    submitBtn.disabled     = true;
+    label.textContent       = 'Sending...';
+    submitBtn.disabled      = true;
     submitBtn.style.opacity = '0.7';
 
     try {
-      const res = await fetch('https://sanjay-portfolio-1imd.onrender.com/api/contact', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name:    nameVal.value.trim(),
-          email:   mailVal.value.trim(),
-          message: msgVal.value.trim(),
-        }),
-      });
+      const result = await emailjs.send(
+        'YOUR_SERVICE_ID',   // ← replace with your EmailJS Service ID
+        'YOUR_TEMPLATE_ID',  // ← replace with your EmailJS Template ID
+        {
+          from_name:  nameVal.value.trim(),
+          from_email: mailVal.value.trim(),
+          message:    msgVal.value.trim(),
+        }
+      );
 
-      const data = await res.json();
-
-      if (data.success) {
+      if (result.status === 200) {
         label.textContent          = '✓ Message Sent!';
         submitBtn.style.background = 'linear-gradient(135deg, #00cc66, #00f5d4)';
         inputs.forEach(i => i.value = '');
@@ -482,13 +457,14 @@ if (submitBtn) {
       } else {
         label.textContent          = '✗ Failed';
         submitBtn.style.background = 'linear-gradient(135deg, #ff2d87, #7b2fff)';
-        showToast('❌ ' + (data.message || 'Something went wrong.'), 'error');
+        showToast('❌ Something went wrong. Try again.', 'error');
       }
 
     } catch (err) {
       label.textContent          = '✗ Error';
       submitBtn.style.background = 'linear-gradient(135deg, #ff2d87, #7b2fff)';
-      showToast('❌ Cannot reach server. Email me directly!', 'error');
+      showToast('❌ Cannot send message. Email me directly!', 'error');
+      console.error('EmailJS error:', err);
     }
 
     // Reset button after 3s
