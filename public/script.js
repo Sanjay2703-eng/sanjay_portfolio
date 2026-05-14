@@ -440,11 +440,13 @@ if (submitBtn) {
 
     try {
       const result = await emailjs.send(
-        'YOUR_SERVICE_ID',   // ← replace with your EmailJS Service ID
-        'YOUR_TEMPLATE_ID',  // ← replace with your EmailJS Template ID
+        'service_0sdfln6',
+        'template_aaxob4u',
         {
           from_name:  nameVal.value.trim(),
           from_email: mailVal.value.trim(),
+          name:       nameVal.value.trim(),
+          email:      mailVal.value.trim(),
           message:    msgVal.value.trim(),
         }
       );
