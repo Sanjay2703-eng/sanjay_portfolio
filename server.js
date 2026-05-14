@@ -34,13 +34,14 @@ if (!fs.existsSync(CONTACTS_FILE)) {
 ───────────────────────────────────── */
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 587,
+  secure: false,
   auth: {
     user: process.env.EMAIL,
-    pass: process.env.PASSWORD,
-  },
+    pass: process.env.PASSWORD
+  }
 });
-
 /* ─────────────────────────────────────
    SIMPLE RATE LIMITER
 ───────────────────────────────────── */
